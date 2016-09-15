@@ -42,6 +42,7 @@ SQL.TableManager = function(owner) {
 	OZ.Event.add(this.dom.edittable, "click", this.edit.bind(this));
 	OZ.Event.add(this.dom.tablekeys, "click", this.keys.bind(this));
 	OZ.Event.add(document, "keydown", this.press.bind(this));
+	OZ.Event.add('area', "drop", this.droppedOnArea.bind(this));
 
 
 	//On doubleclick in the main area
@@ -63,6 +64,34 @@ SQL.TableManager = function(owner) {
 	});
 
 	this.dom.container.parentNode.removeChild(this.dom.container);
+};
+
+SQL.TableManager.prototype.droppedOnArea = function(e) {
+	e.stopImmediatePropagation();
+	this.preAdd(e);
+	console.log(this.dom.addtable);
+	if(SQL.Row.dragged.isPrimary()){
+		this.click(e);
+		var draggedTable = closest(SQL.Row.dragged.dom.container, '.table');
+		var nameOfDraggedTable = draggedTable.getAttribute('data-name');
+		nameOfDraggedTable = pluralize.singular(nameOfDraggedTable);
+		var nameOfColumn = nameOfDraggedTable+"_id";
+		var newrow = this.selection[0].addRow(_(nameOfColumn));
+		SQL.Designer.addRelation(SQL.Row.dragged, newrow);
+	} else {
+		this.click(e, true);
+		console.log(this.selection[0]);
+		var newTable = this.selection[0];
+		var nameOfDroppedColumn = SQL.Row.dragged.getTitle();
+		if (nameOfDroppedColumn.substring(nameOfDroppedColumn.length-3) == "_id")
+		{
+			nameOfDroppedColumn = nameOfDroppedColumn.substring(0, nameOfDroppedColumn.length-3);
+		}
+		nameOfDroppedColumn = pluralize.plural(nameOfDroppedColumn);
+		newTable.setTitle(nameOfDroppedColumn);
+		var primary = newTable.findNamedRow('id');
+		SQL.Designer.addRelation(primary, SQL.Row.dragged);
+	}
 };
 
 SQL.TableManager.prototype.addRow = function(e) {
@@ -88,7 +117,7 @@ SQL.TableManager.prototype.select = function(table, multi) { /* activate table *
 		this.selection = [];
 	}
 	this.processSelection();
-}
+};
 
 SQL.TableManager.prototype.processSelection = function() {
 	var tables = this.owner.tables;
@@ -117,7 +146,7 @@ SQL.TableManager.prototype.processSelection = function() {
 		t.owner.raise(t);
 		t.select();
 	}
-}
+};
 
 SQL.TableManager.prototype.selectRect = function(x,y,width,height) { /* select all tables intersecting a rectangle */
 	this.selection = [];
@@ -135,9 +164,12 @@ SQL.TableManager.prototype.selectRect = function(x,y,width,height) { /* select a
 			{ this.selection.push(t); }
 	}
 	this.processSelection();
-}
+};
 
-SQL.TableManager.prototype.click = function(e) { /* finish adding new table */
+SQL.TableManager.prototype.click = function(e, preventEdit) { /* finish adding new table */
+	if(typeof(preventEdit) === 'undefined'){
+		preventEdit = false;
+	}
 	var newtable = false;
 	if (this.adding) {
 		this.adding = false;
@@ -153,8 +185,8 @@ SQL.TableManager.prototype.click = function(e) { /* finish adding new table */
 	}
 	this.select(newtable);
 	this.owner.rowManager.select(false);
-	if (this.selection.length == 1) { this.edit(e); }
-}
+	if (this.selection.length == 1 && preventEdit === false) { this.edit(e); }
+};
 
 SQL.TableManager.prototype.preAdd = function(e) { /* click add new table */
 	if (this.adding) {
@@ -167,14 +199,14 @@ SQL.TableManager.prototype.preAdd = function(e) { /* click add new table */
 		this.oldvalue = this.dom.addtable.value;
 		this.dom.addtable.value = "["+_("addpending")+"]";
 	}
-}
+};
 
 SQL.TableManager.prototype.clear = function(e) { /* remove all tables */
 	if (!this.owner.tables.length) { return; }
 	var result = confirm(_("confirmall")+" ?");
 	if (!result) { return; }
 	this.owner.clearTables();
-}
+};
 
 SQL.TableManager.prototype.remove = function(e) {
 	var titles = this.selection.slice(0);
@@ -183,7 +215,7 @@ SQL.TableManager.prototype.remove = function(e) {
 	if (!result) { return; }
 	var sel = this.selection.slice(0);
 	for (var i=0;i<sel.length;i++) { this.owner.removeTable(sel[i]); }
-}
+};
 
 SQL.TableManager.prototype.edit = function(e) {
 	this.owner.window.open(_("edittable"), this.dom.container, this.save);
@@ -203,16 +235,16 @@ SQL.TableManager.prototype.edit = function(e) {
 	} else {
 		this.dom.name.setSelectionRange(0, title.length);
 	} 
-}
+};
 
 SQL.TableManager.prototype.keys = function(e) { /* open keys dialog */
 	this.owner.keyManager.open(this.selection[0]);
-}
+};
 
 SQL.TableManager.prototype.save = function() {
 	this.selection[0].setTitle(this.dom.name.value);
 	this.selection[0].setComment(this.dom.comment.value);
-}
+};
 
 SQL.TableManager.prototype.press = function(e) {
 	var target = OZ.Event.target(e).nodeName.toLowerCase();
@@ -228,4 +260,4 @@ SQL.TableManager.prototype.press = function(e) {
 			OZ.Event.prevent(e);
 		break;
 	}
-}
+};

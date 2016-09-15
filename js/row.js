@@ -46,9 +46,8 @@ SQL.Row.prototype._build = function() {
 	OZ.Event.add(this.dom.container, "dblclick", this.dblclick.bind(this));
 	OZ.Event.add(this.dom.content, "drop", this.drop.bind(this));
 	OZ.Event.add(this.dom.content, "dragstart", this.dragStart.bind(this));
-	OZ.Event.add(this.dom.content, "dragenter", this.dragEnter.bind(this));
 	OZ.Event.add(this.dom.content, "dragover", this.dragOver.bind(this));
-	OZ.Event.add(this.dom.content, "dragleave", this.dragLeave.bind(this));
+	OZ.Event.add('area', "dragover", this.dragOverArea.bind(this));
 };
 
 SQL.Row.prototype.select = function() {
@@ -89,30 +88,13 @@ SQL.Row.prototype.dblclick = function(e) { /* dblclicked on row */
 
 SQL.Row.dragged = null;
 
-SQL.Row.prototype.drop = function(e) { /* dropped a row */
+SQL.Row.prototype.dragStart = function(e) {
 	e.stopImmediatePropagation();
-	SQL.Designer.addRelation(SQL.Row.dragged, this);
-
-};
-
-SQL.Row.prototype.dragStart = function(e) { /* dropped a row */
-	e.stopImmediatePropagation();
-	var table = closest(this.dom.container, '.table');
-	console.log(table);
-	console.log(table.getAttribute('data-name'));
-	if(table !== null) {
-		e.dataTransfer.setData('title', this.getTitle());
-		e.dataTransfer.setData('draggedFromRow', this.getTitle());
-		e.dataTransfer.setData('draggedFromTable', table.getAttribute('data-name'));
-	}
 	SQL.Row.dragged = this;
 };
 
-SQL.Row.prototype.dragEnter = function(e) { /* dropped a row */
-
-};
-
-SQL.Row.prototype.dragOver = function(e) { /* dropped a row */
+SQL.Row.prototype.dragOver = function(e) {
+	e.stopImmediatePropagation();
 	var myTable = closest(SQL.Row.dragged.dom.container, '.table');
 	var table = closest(e.target, '.table');
 	if(myTable.getAttribute('data-name') === table.getAttribute('data-name')){
@@ -123,9 +105,18 @@ SQL.Row.prototype.dragOver = function(e) { /* dropped a row */
 	}
 };
 
-SQL.Row.prototype.dragLeave = function(e) { /* dropped a row */
-
+SQL.Row.prototype.dragOverArea = function(e) {
+	e.stopImmediatePropagation();
+	if (e.preventDefault) {
+		e.preventDefault(); // Necessary. Allows us to drop.
+	}
 };
+
+SQL.Row.prototype.drop = function(e) { /* dropped a row */
+	e.stopImmediatePropagation();
+	SQL.Designer.addRelation(SQL.Row.dragged, this);
+};
+
 
 SQL.Row.prototype.update = function(data) { /* update subset of row data */
 	var des = SQL.Designer;
