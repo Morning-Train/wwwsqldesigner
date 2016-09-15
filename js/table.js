@@ -54,6 +54,7 @@ SQL.Table.prototype.setTitle = function(t) {
 			if (tt != row.getTitle()) { row.setTitle(tt); }
 		}
 	}
+	this.dom.container.setAttribute('data-name', t);
 	SQL.Visual.prototype.setTitle.apply(this, [t]);
 }
 

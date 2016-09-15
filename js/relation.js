@@ -4,6 +4,7 @@ SQL.Relation = function(owner, row1, row2) {
 	this.owner = owner;
 	this.row1 = row1;
 	this.row2 = row2;
+	console.log(this);
 	this.color = "#000";
 	this.hidden = false;
 	SQL.Visual.apply(this);

@@ -258,3 +258,15 @@ input[type=button], .btn {
 input[type=button]:hover, .btn:hover {
 	background: #b5b5b5;
 }
+
+/* Prevent the text contents of draggable elements from being selectable. */
+[draggable] {
+	/*cursor:move;*/
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+	/* Required to make elements draggable in old WebKit */
+	-khtml-user-drag: element;
+	-webkit-user-drag: element;
+}

@@ -108,7 +108,7 @@ SQL.Designer.prototype.init2 = function() { /* secondary init, after locale & da
 		this.io.serverload(false, keyword);
 	}
 	document.body.style.visibility = "visible";
-}
+};
 
 SQL.Designer.prototype.getMaxZ = function() { /* find max zIndex */
 	var max = 0;
@@ -119,7 +119,7 @@ SQL.Designer.prototype.getMaxZ = function() { /* find max zIndex */
 	
 	OZ.$("controls").style.zIndex = max+5;
 	return max;
-}
+};
 
 SQL.Designer.prototype.addTable = function(name, x, y) {
 	var max = this.getMaxZ();
@@ -127,7 +127,7 @@ SQL.Designer.prototype.addTable = function(name, x, y) {
 	this.tables.push(t);
 	this.dom.container.appendChild(t.dom.container);
 	return t;
-}
+};
 
 SQL.Designer.prototype.removeTable = function(t) {
 	this.tableManager.select(false);
@@ -136,20 +136,20 @@ SQL.Designer.prototype.removeTable = function(t) {
 	if (idx == -1) { return; }
 	t.destroy();
 	this.tables.splice(idx,1);
-}
+};
 
 SQL.Designer.prototype.addRelation = function(row1, row2) {
 	var r = new SQL.Relation(this, row1, row2);
 	this.relations.push(r);
 	return r;
-}
+};
 
 SQL.Designer.prototype.removeRelation = function(r) {
 	var idx = this.relations.indexOf(r);
 	if (idx == -1) { return; }
 	r.destroy();
 	this.relations.splice(idx,1);
-}
+};
 
 SQL.Designer.prototype.getCookie = function() {
 	var c = document.cookie;

@@ -17,7 +17,7 @@ SQL.Row = function(owner, title, data) {
 	
 	if (data) { this.update(data); }
 	this.setTitle(title);
-}
+};
 SQL.Row.prototype = Object.create(SQL.Visual.prototype);
 
 SQL.Row.prototype._build = function() {
@@ -30,6 +30,9 @@ SQL.Row.prototype._build = function() {
 	var td2 = OZ.DOM.elm("td", {className:"typehint"});
 	this.dom.typehint = td2;
 
+	this.dom.content.setAttribute('draggable', 'true');
+	this.dom.content.setAttribute('data-title', this.getTitle());
+
 	OZ.DOM.append(
 		[this.dom.container, this.dom.content],
 		[this.dom.content, td1, td2],
@@ -39,22 +42,27 @@ SQL.Row.prototype._build = function() {
 	this.enter = this.enter.bind(this);
 	this.changeComment = this.changeComment.bind(this);
 
-	OZ.Event.add(this.dom.container, "click",this.click.bind(this));
-	OZ.Event.add(this.dom.container, "dblclick",this.dblclick.bind(this));
-}
+	OZ.Event.add(this.dom.container, "click", this.click.bind(this));
+	OZ.Event.add(this.dom.container, "dblclick", this.dblclick.bind(this));
+	OZ.Event.add(this.dom.content, "drop", this.drop.bind(this));
+	OZ.Event.add(this.dom.content, "dragstart", this.dragStart.bind(this));
+	OZ.Event.add(this.dom.content, "dragenter", this.dragEnter.bind(this));
+	OZ.Event.add(this.dom.content, "dragover", this.dragOver.bind(this));
+	OZ.Event.add(this.dom.content, "dragleave", this.dragLeave.bind(this));
+};
 
 SQL.Row.prototype.select = function() {
 	if (this.selected) { return; }
 	this.selected = true;
 	this.redraw();
-}
+};
 
 SQL.Row.prototype.deselect = function() {
 	if (!this.selected) { return; }
 	this.selected = false;
 	this.redraw();
 	this.collapse();
-}
+};
 
 SQL.Row.prototype.setTitle = function(t) {
 	var old = this.getTitle();
@@ -64,20 +72,60 @@ SQL.Row.prototype.setTitle = function(t) {
 		var tt = r.row2.getTitle().replace(new RegExp(old,"g"),t);
 		if (tt != r.row2.getTitle()) { r.row2.setTitle(tt); }
 	}
-	
+	this.dom.content.setAttribute('data-title', t);
 	SQL.Visual.prototype.setTitle.apply(this, [t]);
-}
+};
 
 SQL.Row.prototype.click = function(e) { /* clicked on row */
 	SQL.publish("rowclick", this);
 	this.owner.owner.rowManager.select(this);
-}
+};
 
 SQL.Row.prototype.dblclick = function(e) { /* dblclicked on row */
 	OZ.Event.prevent(e);
 	OZ.Event.stop(e);
 	this.expand();
-}
+};
+
+SQL.Row.prototype.drop = function(e) { /* dropped a row */
+	e.stopImmediatePropagation();
+
+	var draggedElement = e.dataTransfer.getData('draggedElement');
+	console.log(draggedElement);
+
+
+	var table = SQL.Designer.findNamedTable(e.dataTransfer.getData('draggedFromTable'));
+	if (!table) { return; }
+	var row = table.findNamedRow(e.dataTransfer.getData('draggedFromRow'));
+	if (!row) { return; }
+
+	SQL.Designer.addRelation(row, this);
+
+};
+
+SQL.Row.prototype.dragStart = function(e) { /* dropped a row */
+	e.stopImmediatePropagation();
+	var table = closest(this.dom.container, '.table');
+	if(table !== null) {
+		e.dataTransfer.setData('title', this.getTitle());
+		e.dataTransfer.setData('draggedFromRow', this.getTitle());
+		e.dataTransfer.setData('draggedFromTable', table.getAttribute('data-name'));
+	}
+};
+
+SQL.Row.prototype.dragEnter = function(e) { /* dropped a row */
+
+};
+
+SQL.Row.prototype.dragOver = function(e) { /* dropped a row */
+	if (e.preventDefault) {
+		e.preventDefault(); // Necessary. Allows us to drop.
+	}
+};
+
+SQL.Row.prototype.dragLeave = function(e) { /* dropped a row */
+
+};
 
 SQL.Row.prototype.update = function(data) { /* update subset of row data */
 	var des = SQL.Designer;
@@ -92,7 +140,7 @@ SQL.Row.prototype.update = function(data) { /* update subset of row data */
 		if (r.row1 == this) { r.row2.update({type:des.getFKTypeFor(this.data.type),size:this.data.size}); }
 	}
 	this.redraw();
-}
+};
 
 SQL.Row.prototype.up = function() { /* shift up */
 	var r = this.owner.rows;
@@ -102,7 +150,7 @@ SQL.Row.prototype.up = function() { /* shift up */
 	r.splice(idx,1);
 	r.splice(idx-1,0,this);
 	this.redraw();
-}
+};
 
 SQL.Row.prototype.down = function() { /* shift down */
 	var r = this.owner.rows;
@@ -112,7 +160,7 @@ SQL.Row.prototype.down = function() { /* shift down */
 	r.splice(idx,1);
 	r.splice(idx+1,0,this);
 	this.redraw();
-}
+};
 
 SQL.Row.prototype.buildEdit = function() {
 	OZ.DOM.clear(this.dom.container);
@@ -175,7 +223,7 @@ SQL.Row.prototype.buildEdit = function() {
 		[td2, this.dom.commentbtn]
 	);
 	this.dom.container.appendChild(tr);
-}
+};
 
 SQL.Row.prototype.changeComment = function(e) {
 	var c = prompt(_("commenttext"),this.data.comment);
@@ -183,7 +231,7 @@ SQL.Row.prototype.changeComment = function(e) {
 	this.data.comment = c;
 	this.dom.comment.innerHTML = "";
 	this.dom.comment.appendChild(document.createTextNode(this.data.comment));
-}
+};
 
 SQL.Row.prototype.expand = function() {
 	if (this.expanded) { return; }
@@ -193,7 +241,7 @@ SQL.Row.prototype.expand = function() {
 	this.redraw();
 	this.dom.name.focus();
 	this.dom.name.select();
-}
+};
 
 SQL.Row.prototype.collapse = function() {
 	if (!this.expanded) { return; }
@@ -212,7 +260,7 @@ SQL.Row.prototype.collapse = function() {
 
 	this.update(data);
 	this.setTitle(this.dom.name.value);
-}
+};
 
 SQL.Row.prototype.load = function() { /* put data to expanded form */
 	this.dom.name.value = this.getTitle();
@@ -223,7 +271,7 @@ SQL.Row.prototype.load = function() { /* put data to expanded form */
 	this.dom.size.value = this.data.size;
 	this.dom.nll.checked = this.data.nll;
 	this.dom.ai.checked = this.data.ai;
-}
+};
 
 SQL.Row.prototype.redraw = function() {
 	var color = this.getColor();
@@ -248,29 +296,29 @@ SQL.Row.prototype.redraw = function() {
 	this.dom.typehint.innerHTML = typehint.join(" ");
 	this.owner.redraw();
 	this.owner.owner.rowManager.redraw();
-}
+};
 
 SQL.Row.prototype.addRelation = function(r) {
 	this.relations.push(r);
-}
+};
 
 SQL.Row.prototype.removeRelation = function(r) {
 	var idx = this.relations.indexOf(r);
 	if (idx == -1) { return; }
 	this.relations.splice(idx,1);
-}
+};
 
 SQL.Row.prototype.addKey = function(k) {
 	this.keys.push(k);
 	this.redraw();
-}
+};
 
 SQL.Row.prototype.removeKey = function(k) {
 	var idx = this.keys.indexOf(k);
 	if (idx == -1) { return; }
 	this.keys.splice(idx,1);
 	this.redraw();
-}
+};
 
 SQL.Row.prototype.getDataType = function() {
 	var type = this.data.type;
