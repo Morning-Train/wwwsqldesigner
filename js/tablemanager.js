@@ -1,6 +1,9 @@
 /* --------------------- table manager ------------ */
 
 SQL.TableManager = function(owner) {
+
+	var me = this;
+
 	this.owner = owner;
 	this.dom = {
 		container:OZ.$("table"),
@@ -40,14 +43,20 @@ SQL.TableManager = function(owner) {
 	OZ.Event.add(this.dom.tablekeys, "click", this.keys.bind(this));
 	OZ.Event.add(document, "keydown", this.press.bind(this));
 
+	//On doubleclick, add new table
+	OZ.Event.add("area", "dblclick", function(e){
+		me.preAdd(e);
+		me.click(e);
+	});
+
 	this.dom.container.parentNode.removeChild(this.dom.container);
-}
+};
 
 SQL.TableManager.prototype.addRow = function(e) {
 	var newrow = this.selection[0].addRow(_("newrow"));
 	this.owner.rowManager.select(newrow);
 	newrow.expand();
-}
+};
 
 SQL.TableManager.prototype.select = function(table, multi) { /* activate table */
 	if (table) {
