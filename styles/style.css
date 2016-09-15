@@ -44,7 +44,7 @@ body {
 #bar input {
 	display: block;
 	width: 90%;
-	margin: auto;
+	margin: 4px auto;
 }
 
 #bar input.small {
