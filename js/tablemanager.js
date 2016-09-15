@@ -43,10 +43,23 @@ SQL.TableManager = function(owner) {
 	OZ.Event.add(this.dom.tablekeys, "click", this.keys.bind(this));
 	OZ.Event.add(document, "keydown", this.press.bind(this));
 
-	//On doubleclick, add new table
+
+	//On doubleclick in the main area
 	OZ.Event.add("area", "dblclick", function(e){
-		me.preAdd(e);
-		me.click(e);
+
+		var table = closest(e.target, '.table');
+
+		if(table === null){
+			//We did not doubleclick a table
+			//Start adding a new table at the clicked location
+			me.preAdd(e);
+			me.click(e);
+		} else {
+			//We did doubleclick a table
+			//Edit the selected table
+			me.edit(e);
+		}
+
 	});
 
 	this.dom.container.parentNode.removeChild(this.dom.container);
