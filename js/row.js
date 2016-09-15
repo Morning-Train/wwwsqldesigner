@@ -87,30 +87,25 @@ SQL.Row.prototype.dblclick = function(e) { /* dblclicked on row */
 	this.expand();
 };
 
+SQL.Row.dragged = null;
+
 SQL.Row.prototype.drop = function(e) { /* dropped a row */
 	e.stopImmediatePropagation();
-
-	var draggedElement = e.dataTransfer.getData('draggedElement');
-	console.log(draggedElement);
-
-
-	var table = SQL.Designer.findNamedTable(e.dataTransfer.getData('draggedFromTable'));
-	if (!table) { return; }
-	var row = table.findNamedRow(e.dataTransfer.getData('draggedFromRow'));
-	if (!row) { return; }
-
-	SQL.Designer.addRelation(row, this);
+	SQL.Designer.addRelation(SQL.Row.dragged, this);
 
 };
 
 SQL.Row.prototype.dragStart = function(e) { /* dropped a row */
 	e.stopImmediatePropagation();
 	var table = closest(this.dom.container, '.table');
+	console.log(table);
+	console.log(table.getAttribute('data-name'));
 	if(table !== null) {
 		e.dataTransfer.setData('title', this.getTitle());
 		e.dataTransfer.setData('draggedFromRow', this.getTitle());
 		e.dataTransfer.setData('draggedFromTable', table.getAttribute('data-name'));
 	}
+	SQL.Row.dragged = this;
 };
 
 SQL.Row.prototype.dragEnter = function(e) { /* dropped a row */
@@ -118,6 +113,11 @@ SQL.Row.prototype.dragEnter = function(e) { /* dropped a row */
 };
 
 SQL.Row.prototype.dragOver = function(e) { /* dropped a row */
+	var myTable = closest(SQL.Row.dragged.dom.container, '.table');
+	var table = closest(e.target, '.table');
+	if(myTable.getAttribute('data-name') === table.getAttribute('data-name')){
+		return;
+	}
 	if (e.preventDefault) {
 		e.preventDefault(); // Necessary. Allows us to drop.
 	}
