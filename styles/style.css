@@ -75,10 +75,10 @@ body {
 
 #minimap {
 	position: fixed;
-	width: 100px;
-	height: 100px;
-	right: 0px;
-	bottom: 0px;
+	width: 150px;
+	height: 150px;
+	left: 10px;
+	bottom: 10px;
 	background-color: #fff;
 	border: 1px solid #000;
 	opacity: 0.9;
